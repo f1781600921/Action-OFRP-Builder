@@ -181,6 +181,26 @@ jobs:
           # Python 3 renamed ConfigParser to configparser.
           grep -RIl "import ConfigParser" bionic build/make/tools external/clang | \
             xargs -r sed -i 's/import ConfigParser/import configparser as ConfigParser/g'
+
+          # fs_config_generator.py can pass parsed numeric constants around as
+          # strings under Python 3. Normalize them before range comparisons.
+          python3 - <<'PYEOF'
+          from pathlib import Path
+
+          path = Path("bionic/libc/fs_config_generator.py")
+          text = path.read_text()
+          old = "    return any(lower <= value <= upper for (lower, upper) in ranges)"
+          new = (
+              "    if isinstance(value, str):\n"
+              "      value = int(value, 0)\n"
+              "    return any(lower <= value <= upper for (lower, upper) in ranges)"
+          )
+          if old not in text:
+              raise SystemExit("fs_config_generator.py range comparison pattern not found")
+          text = text.replace(old, new)
+          path.write_text(text)
+          PYEOF
+          sed -n '84,96p' bionic/libc/fs_config_generator.py
         working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
       - name: Add device tree
