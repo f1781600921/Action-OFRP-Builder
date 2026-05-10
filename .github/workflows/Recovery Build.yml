@@ -190,11 +190,7 @@ jobs:
           path = Path("bionic/libc/fs_config_generator.py")
           text = path.read_text()
           old = "    return any(lower <= value <= upper for (lower, upper) in ranges)"
-          new = (
-              "    if isinstance(value, str):\n"
-              "      value = int(value, 0)\n"
-              "    return any(lower <= value <= upper for (lower, upper) in ranges)"
-          )
+          new = "    return any(lower <= (int(value, 0) if isinstance(value, str) else value) <= upper for (lower, upper) in ranges)"
           if old not in text:
               raise SystemExit("fs_config_generator.py range comparison pattern not found")
           text = text.replace(old, new)
