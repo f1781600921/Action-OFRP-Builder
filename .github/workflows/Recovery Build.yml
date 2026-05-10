@@ -84,10 +84,17 @@ jobs:
             aria2 python2 python-is-python2
           git clone https://gitlab.com/OrangeFox/misc/scripts
           bash scripts/setup/android_build_env.sh
+          mkdir -p "$HOME/.python2-bin"
+          ln -sf /usr/bin/python2 "$HOME/.python2-bin/python"
+          ln -sf /usr/bin/python2 "$HOME/.python2-bin/python2"
+          echo "$HOME/.python2-bin" >> "$GITHUB_PATH"
           mkdir -p "$HOME/.bin"
           curl -L https://storage.googleapis.com/git-repo-downloads/repo -o "$HOME/.bin/repo"
           chmod a+x "$HOME/.bin/repo"
           echo "$HOME/.bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.python2-bin:$HOME/.bin:$PATH"
+          which python
+          python --version
         working-directory: ${{ github.workspace }}
 
       - name: Check out this repository
@@ -108,7 +115,9 @@ jobs:
 
       - name: Sync Android 9 recovery base
         run: |
-          export PATH="$HOME/.bin:$PATH"
+          export PATH="$HOME/.python2-bin:$HOME/.bin:$PATH"
+          which python
+          python --version
           mkdir -p "${{ steps.pwd.outputs.workspace-folder }}/fox_9"
           cd "${{ steps.pwd.outputs.workspace-folder }}/fox_9"
           repo init --depth=1 -u "${{ github.event.inputs.MANIFEST_URL }}" -b "${{ github.event.inputs.MANIFEST_BRANCH }}"
@@ -118,6 +127,7 @@ jobs:
       - name: Add OrangeFox sources
         run: |
           set -e
+          export PATH="$HOME/.python2-bin:$HOME/.bin:$PATH"
           cd "${{ steps.pwd.outputs.workspace-folder }}/fox_9"
 
           rm -rf bootable/recovery vendor/recovery
@@ -143,6 +153,7 @@ jobs:
       - name: Patch legacy recovery make compatibility
         run: |
           set -e
+          export PATH="$HOME/.python2-bin:$HOME/.bin:$PATH"
           cd "${{ steps.pwd.outputs.workspace-folder }}/fox_9"
 
           # Legacy TWRP/OrangeFox Android.mk files use LOCAL_ADDITIONAL_DEPENDENCIES
@@ -175,6 +186,7 @@ jobs:
       - name: Add device tree
         run: |
           set -e
+          export PATH="$HOME/.python2-bin:$HOME/.bin:$PATH"
           SRC="${GITHUB_WORKSPACE}/${{ github.event.inputs.DEVICE_PATH }}"
           DST="${{ steps.pwd.outputs.workspace-folder }}/fox_9/${{ github.event.inputs.DEVICE_PATH }}"
           mkdir -p "$(dirname "$DST")"
@@ -193,6 +205,7 @@ jobs:
         if: ${{ github.event.inputs.COMMON_TREE_URL != '' && github.event.inputs.COMMON_PATH != '' }}
         run: |
           set -e
+          export PATH="$HOME/.python2-bin:$HOME/.bin:$PATH"
           BRANCH="${{ github.event.inputs.COMMON_TREE_BRANCH }}"
           if [ -z "$BRANCH" ]; then
             BRANCH="${{ github.event.inputs.DEVICE_TREE_BRANCH }}"
@@ -205,6 +218,9 @@ jobs:
       - name: Build recovery
         run: |
           set -e
+          export PATH="$HOME/.python2-bin:$HOME/.bin:$PATH"
+          which python
+          python --version
           cd "${{ steps.pwd.outputs.workspace-folder }}/fox_9"
           source build/envsetup.sh
           export ALLOW_MISSING_DEPENDENCIES=true
