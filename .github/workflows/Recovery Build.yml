@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       MANIFEST_URL:
-        description: 'OrangeFox manifest URL'
+        description: 'Base Android 9 manifest URL'
         required: true
-        default: 'https://gitlab.com/OrangeFox/Manifest.git'
+        default: 'https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git'
       MANIFEST_BRANCH:
-        description: 'OrangeFox manifest branch'
+        description: 'Base Android 9 manifest branch'
         required: true
-        default: 'fox_9.0'
+        default: 'twrp-9.0'
       DEVICE_TREE_URL:
         description: 'Device tree URL. Leave blank to use DEVICE_PATH from this repository.'
         required: false
@@ -99,13 +99,30 @@ jobs:
           ssh-private-key: |
             ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Sync OrangeFox Android 9 sources
+      - name: Sync Android 9 recovery base
         run: |
           export PATH="$HOME/.bin:$PATH"
           mkdir -p fox_9
           cd fox_9
           repo init --depth=1 -u "${{ github.event.inputs.MANIFEST_URL }}" -b "${{ github.event.inputs.MANIFEST_BRANCH }}"
-          repo sync -c --no-tags --no-clone-bundle --optimized-fetch --prune -j"$(nproc --all)"
+          repo sync --no-repo-verify -c --no-tags --no-clone-bundle --optimized-fetch --prune -j"$(nproc --all)"
+        working-directory: ${{ steps.pwd.outputs.workspace-folder }}
+
+      - name: Add OrangeFox sources
+        run: |
+          set -e
+          cd fox_9
+
+          rm -rf bootable/recovery vendor/recovery
+          git clone --depth=1 --single-branch -b fox_9.0 \
+            https://gitlab.com/OrangeFox/bootable/Recovery.git bootable/recovery
+
+          if git ls-remote --exit-code --heads https://gitlab.com/OrangeFox/vendor/recovery.git fox_9.0 >/dev/null 2>&1; then
+            git clone --depth=1 --single-branch -b fox_9.0 \
+              https://gitlab.com/OrangeFox/vendor/recovery.git vendor/recovery
+          else
+            git clone --depth=1 https://gitlab.com/OrangeFox/vendor/recovery.git vendor/recovery
+          fi
         working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
       - name: Add device tree
