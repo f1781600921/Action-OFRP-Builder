@@ -114,15 +114,23 @@ jobs:
           cd fox_9
 
           rm -rf bootable/recovery vendor/recovery
-          git clone --depth=1 --single-branch -b fox_9.0 \
+          git clone --depth=1 --branch R9.0 \
+            https://gitlab.com/OrangeFox/bootable/Recovery.git bootable/recovery || \
+          git clone --depth=1 --branch fox_9.0 \
             https://gitlab.com/OrangeFox/bootable/Recovery.git bootable/recovery
 
-          if git ls-remote --exit-code --heads https://gitlab.com/OrangeFox/vendor/recovery.git fox_9.0 >/dev/null 2>&1; then
-            git clone --depth=1 --single-branch -b fox_9.0 \
+          if git ls-remote --exit-code --tags https://gitlab.com/OrangeFox/vendor/recovery.git R9.0 >/dev/null 2>&1; then
+            git clone --depth=1 --branch R9.0 \
+              https://gitlab.com/OrangeFox/vendor/recovery.git vendor/recovery
+          elif git ls-remote --exit-code --heads https://gitlab.com/OrangeFox/vendor/recovery.git fox_9.0 >/dev/null 2>&1; then
+            git clone --depth=1 --branch fox_9.0 \
               https://gitlab.com/OrangeFox/vendor/recovery.git vendor/recovery
           else
             git clone --depth=1 https://gitlab.com/OrangeFox/vendor/recovery.git vendor/recovery
           fi
+
+          echo "Available recovery themes:"
+          find bootable/recovery vendor/recovery -path '*/ui.xml' -print | sort
         working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
       - name: Add device tree
