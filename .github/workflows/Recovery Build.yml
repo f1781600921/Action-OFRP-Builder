@@ -161,6 +161,15 @@ jobs:
             bootable/recovery/minuitwrp/graphics_fbdev.cpp
           grep -n "idx <" bootable/recovery/minuitwrp/graphics_fbdev.cpp | head -5
 
+          # This recovery-only build does not ship radio images. Skip the old
+          # radio version checker, which may run under Python 3 depending on
+          # PATH/shebang handling in the build tree.
+          cat > build/make/tools/check_radio_versions.py <<'PYEOF'
+          #!/bin/sh
+          exit 0
+          PYEOF
+          chmod +x build/make/tools/check_radio_versions.py
+
         working-directory: ${{ github.workspace }}
 
       - name: Add device tree
