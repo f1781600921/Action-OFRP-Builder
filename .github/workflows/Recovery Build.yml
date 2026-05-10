@@ -58,6 +58,9 @@ jobs:
     timeout-minutes: 360
     permissions:
       contents: write
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Initialize workspace
