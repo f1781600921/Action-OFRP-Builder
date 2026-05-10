@@ -133,6 +133,21 @@ jobs:
           find bootable/recovery vendor/recovery -path '*/ui.xml' -print | sort
         working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
+      - name: Patch legacy recovery make compatibility
+        run: |
+          set -e
+          cd fox_9
+
+          # Legacy TWRP/OrangeFox Android.mk files use LOCAL_ADDITIONAL_DEPENDENCIES
+          # for module names. Android 9 build/make treats that as fatal, so keep it
+          # as a warning for this recovery-only build.
+          sed -i \
+            's/$(call pretty-error,"LOCAL_ADDITIONAL_DEPENDENCIES must only contain paths (not module names)")/$(call pretty-warning,"LOCAL_ADDITIONAL_DEPENDENCIES contains module names; allowed for legacy TWRP\/OrangeFox recovery makefiles")/' \
+            build/make/core/base_rules.mk
+
+          grep -n "LOCAL_ADDITIONAL_DEPENDENCIES" build/make/core/base_rules.mk | head -20
+        working-directory: ${{ steps.pwd.outputs.workspace-folder }}
+
       - name: Add device tree
         run: |
           set -e
