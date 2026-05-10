@@ -182,10 +182,11 @@ jobs:
           chmod +x build/make/tools/check_radio_versions.py
 
           # Legacy OrangeFox/TWRP recovery sources contain unused helpers on
-          # some build configurations. Keep -Werror for real errors but allow
-          # these stale-code warnings.
-          sed -i '/LOCAL_CFLAGS += -Wall -Werror/a LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-function' \
+          # some build configurations. Put these suppressions after the final
+          # recovery -Wall -Werror flags so clang actually sees them.
+          sed -i 's/-Wall -Werror/-Wall -Werror -Wno-unused-variable -Wno-unused-function/g' \
             bootable/recovery/Android.mk
+          grep -n "Wno-unused-variable" bootable/recovery/Android.mk
 
         working-directory: ${{ github.workspace }}
 
