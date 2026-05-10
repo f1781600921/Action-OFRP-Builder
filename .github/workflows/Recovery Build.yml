@@ -146,6 +146,13 @@ jobs:
             build/make/core/base_rules.mk
 
           grep -n "LOCAL_ADDITIONAL_DEPENDENCIES" build/make/core/base_rules.mk | head -20
+
+          # Newer clang treats this legacy minuitwrp signedness warning as fatal
+          # because recovery is built with -Werror.
+          sed -i \
+            's/idx < (gr_draw->height \* gr_draw->row_bytes)/idx < static_cast<unsigned int>(gr_draw->height * gr_draw->row_bytes)/' \
+            bootable/recovery/minuitwrp/graphics_fbdev.cpp
+          grep -n "idx <" bootable/recovery/minuitwrp/graphics_fbdev.cpp | head -5
         working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
       - name: Add device tree
