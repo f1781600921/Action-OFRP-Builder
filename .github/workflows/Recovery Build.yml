@@ -166,6 +166,11 @@ jobs:
           PYEOF
           chmod +x build/make/tools/check_radio_versions.py
           sed -n '1,20p' build/make/tools/check_radio_versions.py
+
+          # Patch common Python 2 dict iteration used by Android 9 helper
+          # scripts when they are executed by Python 3.
+          grep -RIl "iteritems()" build/make/tools | xargs -r sed -i 's/iteritems()/items()/g'
+          grep -RIn "iteritems()" build/make/tools || true
         working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
       - name: Add device tree
