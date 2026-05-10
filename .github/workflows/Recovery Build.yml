@@ -154,12 +154,18 @@ jobs:
             bootable/recovery/minuitwrp/graphics_fbdev.cpp
           grep -n "idx <" bootable/recovery/minuitwrp/graphics_fbdev.cpp | head -5
 
-          # Ubuntu 22.04 runs many legacy Android build helper scripts with
-          # Python 3. Patch the Python 2 print statements that still exist
-          # in the Pie build tree without depending on the optional 2to3 tool.
-          sed -i -E 's/^([[:space:]]*)print (.*)$/\1print(\2)/' \
-            build/make/tools/check_radio_versions.py
-          grep -n "print" build/make/tools/check_radio_versions.py
+          # This recovery-only build does not ship radio images. The legacy
+          # Android 9 radio checker is Python 2 code and breaks on Ubuntu 22.04,
+          # so replace it with a Python 3 no-op.
+          cat > build/make/tools/check_radio_versions.py <<'PYEOF'
+          #!/usr/bin/env python3
+          import sys
+
+          if __name__ == "__main__":
+              sys.exit(0)
+          PYEOF
+          chmod +x build/make/tools/check_radio_versions.py
+          sed -n '1,20p' build/make/tools/check_radio_versions.py
         working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
       - name: Add device tree
