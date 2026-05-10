@@ -181,6 +181,12 @@ jobs:
           PYEOF
           chmod +x build/make/tools/check_radio_versions.py
 
+          # Legacy OrangeFox/TWRP recovery sources contain unused helpers on
+          # some build configurations. Keep -Werror for real errors but allow
+          # these stale-code warnings.
+          sed -i '/LOCAL_CFLAGS += -Wall -Werror/a LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-function' \
+            bootable/recovery/Android.mk
+
         working-directory: ${{ github.workspace }}
 
       - name: Add device tree
