@@ -155,9 +155,11 @@ jobs:
           grep -n "idx <" bootable/recovery/minuitwrp/graphics_fbdev.cpp | head -5
 
           # Ubuntu 22.04 runs many legacy Android build helper scripts with
-          # Python 3. Convert the Python 2 print statements that still exist
-          # in the Pie build tree.
-          2to3 -w build/make/tools/check_radio_versions.py
+          # Python 3. Patch the Python 2 print statements that still exist
+          # in the Pie build tree without depending on the optional 2to3 tool.
+          sed -i -E 's/^([[:space:]]*)print (.*)$/\1print(\2)/' \
+            build/make/tools/check_radio_versions.py
+          grep -n "print" build/make/tools/check_radio_versions.py
         working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
       - name: Add device tree
