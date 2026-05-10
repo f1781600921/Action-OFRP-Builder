@@ -169,14 +169,18 @@ jobs:
 
           # Patch common Python 2 dict iteration used by Android 9 helper
           # scripts when they are executed by Python 3.
-          grep -RIl "iteritems()" build/make/tools external/clang | xargs -r sed -i 's/iteritems()/items()/g'
-          grep -RIn "iteritems()" build/make/tools external/clang || true
+          grep -RIl "iteritems()" build/make/tools external/clang bionic | xargs -r sed -i 's/iteritems()/items()/g'
+          grep -RIn "iteritems()" build/make/tools external/clang bionic || true
 
           # Patch simple Python 2 print statements in legacy host tools.
-          grep -RIl "print sys.stderr," external/clang build/make/tools | \
+          grep -RIl "print sys.stderr," external/clang build/make/tools bionic | \
             xargs -r sed -i -E 's/^([[:space:]]*)print sys\.stderr, (.*)$/\1print(\2, file=sys.stderr)/'
-          grep -RIl "^[[:space:]]*print [^\\(]" external/clang build/make/tools | \
+          grep -RIl "^[[:space:]]*print [^\\(]" external/clang build/make/tools bionic | \
             xargs -r sed -i -E 's/^([[:space:]]*)print (.*)$/\1print(\2)/'
+
+          # Python 3 renamed ConfigParser to configparser.
+          grep -RIl "import ConfigParser" bionic build/make/tools external/clang | \
+            xargs -r sed -i 's/import ConfigParser/import configparser as ConfigParser/g'
         working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
       - name: Add device tree
