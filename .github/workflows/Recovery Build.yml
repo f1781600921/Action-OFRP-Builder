@@ -188,6 +188,19 @@ jobs:
             bootable/recovery/Android.mk
           grep -n "Wno-unused-variable" bootable/recovery/Android.mk
 
+          # Some old OrangeFox helpers are compiled out by this device config
+          # but still declared in C++ files. Mark the known stale declarations
+          # as intentionally unused; this is more reliable than trying to chase
+          # the final generated recovery CFLAGS.
+          sed -i 's/int gui_adb_backup;/int gui_adb_backup __attribute__((unused));/' \
+            bootable/recovery/partitionmanager.cpp
+          sed -i 's/int total_time = (int) difftime(total_stop, total_start);/int total_time __attribute__((unused)) = (int) difftime(total_stop, total_start);/' \
+            bootable/recovery/partitionmanager.cpp
+          sed -i 's/static std::string get_survival_path()/static std::string __attribute__((unused)) get_survival_path()/' \
+            bootable/recovery/twinstall.cpp
+          sed -i 's/static std::string get_metadata_property/static std::string __attribute__((unused)) get_metadata_property/' \
+            bootable/recovery/twinstall.cpp
+
         working-directory: ${{ github.workspace }}
 
       - name: Add device tree
