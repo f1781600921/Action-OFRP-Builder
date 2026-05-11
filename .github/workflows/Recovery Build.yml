@@ -200,6 +200,9 @@ jobs:
             bootable/recovery/twinstall.cpp
           sed -i 's/static std::string get_metadata_property/static std::string __attribute__((unused)) get_metadata_property/' \
             bootable/recovery/twinstall.cpp
+          for src in bootable/recovery/*.cpp; do
+            sed -i '1i#pragma clang diagnostic ignored "-Wunused-function"\n#pragma clang diagnostic ignored "-Wunused-variable"' "$src"
+          done
 
         working-directory: ${{ github.workspace }}
 
